@@ -1,5 +1,6 @@
 package pl.sdacademy.spring.springdatatraining;
 
+import org.apache.tomcat.jni.Local;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,12 @@ import pl.sdacademy.spring.springdatatraining.person.Person;
 import pl.sdacademy.spring.springdatatraining.person.PersonReader;
 import pl.sdacademy.spring.springdatatraining.person.PersonRepository;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 class SpringDataTrainingApplicationTests {
@@ -31,29 +37,42 @@ class SpringDataTrainingApplicationTests {
     @Test
     void shouldFindAllPeople() {
         // when
-        List<Person> people = personRepository.methodCall(); // TODO call a proper method on the repository so the test passes;
+        List<Person> people = personRepository.findAll(); // TODO call a proper method on the repository so the test passes;
 
         // then
         Assertions.assertEquals(2000, people.size());
     }
 
+//    @Test
+//    void shouldRemovePersonWithId1000() {
+//        // when
+//        personRepository.deleteById(1000L); // TODO call a method to remove a person with id = 1000
+//        List<Person> people = personRepository.findAll(); // TODO find all remaining people
+//
+//        // then
+//        Assertions.assertEquals(1999, people.size());
+//    }
+
     @Test
-    void shouldRemovePersonWithId1000() {
+    void shouldRemovePersonWithGivenId() {
+        // given
+        long id = 1000L;
+        Assertions.assertTrue(personRepository.findById(id).isPresent());
+
         // when
-        personRepository.methodCall(1000L); // TODO call a method to remove a person with id = 1000
-        List<Person> people = personRepository.methodCall(); // TODO find all remaining people
+        personRepository.deleteById(id);
 
         // then
-        Assertions.assertEquals(1999, people.size());
+        Assertions.assertFalse(personRepository.findById(id).isPresent());
     }
 
     @Test
     void shouldFindAllPeopleWithNameKrystyna() {
         // given
-        String name = "Krystyna";
+        String name = "KRYSTYNA";
 
         // when
-        List<Person> people = personRepository.methodCall(name);
+        List<Person> people = personRepository.findByNameIgnoreCase(name);
 
         // then
         Assertions.assertEquals(9, people.size());
@@ -65,7 +84,7 @@ class SpringDataTrainingApplicationTests {
         String sex = "M";
 
         // when
-        List<Person> people = personRepository.methodCall(sex);
+        List<Person> people = personRepository.findAllBySexIgnoreCase(sex);
 
         // then
         Assertions.assertEquals(1012, people.size());
@@ -78,19 +97,22 @@ class SpringDataTrainingApplicationTests {
         String sex = "F";
 
         // when
-        List<Person> people = personRepository.methodCall(lastName, sex);
+        List<Person> people = personRepository.findAllBySexAndLastName(sex, lastName);
 
         // then
         Assertions.assertEquals(9, people.size());
     }
 
     @Test
-    void shouldFindAllPeopleWithNameAdamczykAndSortThemByAgeDescending() {
+    void shouldFindAllPeopleWithLastNameAdamczykAndSortThemByAgeDescending() {
         // given
         String lastName = "Adamczyk"; // TODO tu jest haczyk :)
 
         // when
-        List<Person> people = personRepository.methodCall(lastName);
+        List<Person> people = personRepository.findAllByLastNameIgnoreCaseOrderByBirthDateAsc(lastName);
+//        people = people.stream()
+//            .sorted(Comparator.comparing(person -> Period.between(person.getBirthDate(), LocalDate.now()).getYears(), Comparator.reverseOrder()))
+//            .collect(Collectors.toList());
 
         // then
         Assertions.assertEquals(21, people.size());
@@ -104,7 +126,7 @@ class SpringDataTrainingApplicationTests {
         PageRequest pageRequest = PageRequest.of(1, 50);
 
         // when
-        Page<Person> people = personRepository.methodCall(pageRequest);
+        Page<Person> people = personRepository.findAll(pageRequest);
 
         // then
         Assertions.assertEquals(40, people.getTotalPages());
